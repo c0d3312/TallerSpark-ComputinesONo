@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Jupyter Notebook (si deciden usarlo en algún momento)
+.ipynb_checkpoints
+
+# Spark
+spark-warehouse/
+metastore_db/
+derby.log
