@@ -34,8 +34,11 @@ Para el desarrollo de los scripts en PySpark, utilizamos el **Books Dataset** ob
 
 ### Estructura de los Datos
 *link de recuperación:* https://www.kaggle.com/datasets/elvinrustam/books-dataset?resource=download
+
 *licencia CCO:* Dominio Publico
+
 *Categoría:* Librería virtual
+
 *Anotación:* El dataset incluye dos .csv : BooksDataset.csv ; BooksDatasetClean.csv. El equipo tomó la decisión de trabajar con **BooksDatasetClean.csv** para evitar hacer el proceso de limpieza por nuestra cuenta.
 
 # IMPORTANTE 
