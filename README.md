@@ -37,3 +37,11 @@ Para el desarrollo de los scripts en PySpark, utilizamos el **Books Dataset** ob
 *licencia CCO:* Dominio Publico
 *Categoría:* Librería virtual
 *Anotación:* El dataset incluye dos .csv : BooksDataset.csv ; BooksDatasetClean.csv. El equipo tomó la decisión de trabajar con **BooksDatasetClean.csv** para evitar hacer el proceso de limpieza por nuestra cuenta.
+
+# IMPORTANTE 
+Crear y activar el entorno virtual (Windows PowerShell):
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+
+Instalar dependencias:
+   pip install -r requirements.txt (En powershell)

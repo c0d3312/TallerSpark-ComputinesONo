@@ -12,3 +12,5 @@ venv/
 spark-warehouse/
 metastore_db/
 derby.log
+
+salida_rdd_resultado.txt
