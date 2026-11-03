@@ -14,3 +14,6 @@ metastore_db/
 derby.log
 
 salida_rdd_resultado.txt
+
+# Salidas generadas por src/df_ejemplo.py
+salida/
