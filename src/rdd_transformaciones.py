@@ -10,10 +10,10 @@ que NO se vieron en clases:
     4. zipWithIndex()   -> agrega un índice correlativo a cada elemento
 
 Recuerda: las transformaciones son "lazy" (perezosas): Spark no ejecuta nada
-hasta que se llama a una acción. Aquí usamos solo collect() / take() para
-mostrar resultados; las 4 acciones nuevas las agrega Felipe al final del script.
+hasta que se llama a una acción. Este script también demuestra cuatro acciones
+nuevas sobre los RDD creados para el mismo conjunto de ventas.
 
-Ejecutar:  python rdd_transformaciones.py   (o spark-submit rdd_transformaciones.py)
+Ejecutar desde la raíz:  python src/rdd_transformaciones.py
 """
 
 from pyspark import SparkConf, SparkContext
@@ -102,7 +102,10 @@ for i, r in enumerate(rdd_resumen_particiones.collect()):
 # ---------------------------------------------------------------------------
 rdd_liquidacion = sc.parallelize([("Hogar", "liquidacion")])
 
-rdd_sin_liquidacion = rdd_por_categoria.subtractByKey(rdd_liquidacion)
+rdd_sin_liquidacion = rdd_por_categoria.subtractByKey(
+    rdd_liquidacion,
+    numPartitions=rdd_ventas.getNumPartitions(),
+)
 
 titulo("TRANSFORMACIÓN 3: subtractByKey()  -> se excluye la categoría 'Hogar'")
 for par in sorted(rdd_sin_liquidacion.collect(), key=lambda p: p[1][0]):
@@ -129,15 +132,50 @@ for puesto, producto, monto in rdd_ranking.collect():
 
 
 # ---------------------------------------------------------------------------
-# ACCIONES (sección para Felipe UA)
-# Aquí se agregan las 4 acciones no vistas en clases, usando los RDD
-# creados arriba: rdd_ventas, rdd_por_categoria, rdd_resumen_particiones,
-# rdd_sin_liquidacion, rdd_ranking
+# ACCIONES
+# Las cuatro acciones reutilizan los RDD de ventas y categorías definidos arriba.
 # ---------------------------------------------------------------------------
-# TODO (Felipe): acción 1
-# TODO (Felipe): acción 2
-# TODO (Felipe): acción 3
-# TODO (Felipe): acción 4
+# 1. countByKey()
+# Cuenta cuántas ventas hay por categoría y devuelve un diccionario al driver.
+conteo_por_categoria = rdd_por_categoria.countByKey()
+
+titulo("ACCIÓN 1: countByKey()  -> ventas por categoría")
+print(dict(conteo_por_categoria))
+
+
+# 2. reduce()
+# Suma el monto total vendido en todas las ventas.
+suma_ventas = rdd_ventas.map(lambda v: v[3] * v[4]).reduce(lambda a, b: a + b)
+
+titulo("ACCIÓN 2: reduce()  -> monto total vendido")
+print(f"${suma_ventas:,}".replace(",", "."))
+
+
+# 3. takeSample()
+# Recupera una muestra aleatoria reproducible de tres ventas.
+muestra_ventas = rdd_ventas.takeSample(False, 3, seed=42)
+
+titulo("ACCIÓN 3: takeSample()  -> muestra de 3 ventas")
+for venta in muestra_ventas:
+    print(venta)
+
+
+# 4. aggregate()
+# Acumula cantidad de ventas e importe total por partición y combina los parciales.
+resumen_ventas = rdd_ventas.aggregate(
+    (0, 0),
+    lambda acumulado, venta: (
+        acumulado[0] + 1,
+        acumulado[1] + venta[3] * venta[4],
+    ),
+    lambda parcial_a, parcial_b: (
+        parcial_a[0] + parcial_b[0],
+        parcial_a[1] + parcial_b[1],
+    ),
+)
+
+titulo("ACCIÓN 4: aggregate()  -> cantidad y monto total")
+print(f"Ventas: {resumen_ventas[0]} | Monto total: ${resumen_ventas[1]:,}".replace(",", "."))
 
 
 sc.stop()
