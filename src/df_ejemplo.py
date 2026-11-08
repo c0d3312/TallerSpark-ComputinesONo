@@ -30,6 +30,7 @@ import os
 import matplotlib.pyplot as plt          # Para visualizaciones (igual que en clases)
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F   # Funciones de columna (mean, stddev, col, ...)
+from pyspark.sql.window import Window    # Necesario para la función Window de M. Alejandra
  
 # Rutas relativas a este archivo, así el script funciona desde cualquier carpeta
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -210,14 +211,28 @@ print("DataFrame limpio guardado en:", os.path.normpath(RUTA_SALIDA))
  
  
 # ---------------------------------------------------------------------------
-# FUNCIONES NUEVAS (sección para María Alejandra)
-# Aquí se agregan las 4 funciones de DataFrame no vistas en clases,
-# usando el DataFrame `df` ya limpio de arriba.
+# FUNCIONES NUEVAS (María Alejandra)
+# Aquí se agregan las 4 funciones de DataFrame no vistas en clases, usando el DataFrame `df` ya limpio de arriba.
 # ---------------------------------------------------------------------------
-# TODO (María Alejandra): función 1
-# TODO (María Alejandra): función 2
-# TODO (María Alejandra): función 3
-# TODO (María Alejandra): función 4
+titulo("Nueva Función 1: summary() en columnas numéricas")
+df.select("precio", "anio_publicacion").summary("count", "mean", "min", "25%", "50%", "75%", "max").show()
+
+titulo("Nueva Función 2: approxQuantile() para evaluar cuartiles")
+cuartiles = df.approxQuantile("precio", [0.25, 0.5, 0.75], 0.01)
+print(f"Cuartiles de precio -> Q1: {cuartiles[0]}, Mediana: {cuartiles[1]}, Q3: {cuartiles[2]}")
+
+titulo("Nueva Función 3: crosstab() entre Categoría y Año (2020-2023)")
+df_filtrado = df.filter(F.col("anio_publicacion").between(2020, 2023))
+df_filtrado.crosstab("categoria", "anio_publicacion").show(10, truncate=False)
+
+titulo("Nueva Función 4: Window Functions + rank() (Top 2 más caros por editorial)")
+window_spec = Window.partitionBy("editorial").orderBy(F.col("precio").desc())
+df_ranked = df.withColumn("ranking", F.rank().over(window_spec))
+
+df_ranked.filter(F.col("ranking") <= 2) \
+         .select("editorial", "titulo", "precio", "ranking") \
+         .orderBy("editorial", "ranking") \
+         .show(15, truncate=False)
  
- 
+spark.stop()
 spark.stop()
